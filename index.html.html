@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MY to-do list</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #eaf0ff;
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .box {
+      width: 420px;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    h2 {
+      text-align: center;
+      color: #2f3542;
+      margin-bottom: 20px;
+    }
+
+    .first-view {
+      text-align: center;
+    }
+
+    #startBtn {
+      background: #2ecc71;
+      border: none;
+      color: #fff;
+      padding: 12px 30px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.3s;
+    }
+
+    #startBtn:hover {
+      background: #27ae60;
+    }
+
+    .input-area {
+      display: none;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #dcdcdc;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .addBtn {
+      background: #3498db;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .addBtn:hover {
+      background: #2c80b4;
+    }
+
+    ul {
+      list-style: none;
+      margin: 20px 0 0;
+      padding: 0;
+    }
+
+    li {
+      background: #f5f7fa;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    li.done {
+      background: #d4edda;
+      color: #155724;
+      text-decoration: line-through;
+    }
+
+    .remove {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .remove:hover {
+      background: #c0392b;
+    }
+
+    .footer {
+      display: none;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #444;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #clearAll {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    #clearAll:hover {
+      background: #c94b4b;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>My to-do list</h2>
+
+    <div class="first-view">
+      <button id="startBtn">Add Task</button>
+    </div>
+
+    <div class="input-area" id="inputWrap">
+      <input type="text" id="textBox" placeholder="Enter your task...">
+      <button class="addBtn" id="insertBtn">Add</button>
+    </div>
+
+    <ul id="taskHolder"></ul>
+
+    <div class="footer" id="footerBar">
+      <span id="remaining">0 tasks left</span>
+      <button id="clearAll">Clear All</button>
+    </div>
+  </div>
+
+  <script>
+    const keyName = "student2_list";
+    const inputWrap = document.getElementById("inputWrap");
+    const firstBtn = document.getElementById("startBtn");
+    const insertBtn = document.getElementById("insertBtn");
+    const textBox = document.getElementById("textBox");
+    const taskHolder = document.getElementById("taskHolder");
+    const footerBar = document.getElementById("footerBar");
+    const remaining = document.getElementById("remaining");
+    const clearAll = document.getElementById("clearAll");
+
+    document.addEventListener("DOMContentLoaded", displayList);
+    insertBtn.addEventListener("click", createItem);
+    firstBtn.addEventListener("click", activateInput);
+    clearAll.addEventListener("click", wipeAll);
+    textBox.addEventListener("keypress", e => {
+      if (e.key === "Enter") createItem();
+    });
+
+    function fetchList() {
+      const stored = localStorage.getItem(keyName);
+      return stored ? JSON.parse(stored) : [];
+    }
+
+    function storeList(list) {
+      localStorage.setItem(keyName, JSON.stringify(list));
+    }
+
+    function activateInput() {
+      firstBtn.style.display = "none";
+      inputWrap.style.display = "flex";
+      footerBar.style.display = "flex";
+      textBox.focus();
+    }
+
+    function createItem() {
+      const text = textBox.value.trim();
+      if (text === "") {
+        alert("Type something first!");
+        return;
+      }
+      const items = fetchList();
+      items.push({ label: text, done: false });
+      storeList(items);
+      textBox.value = "";
+      displayList();
+    }
+
+    function toggleItem(idx) {
+      const items = fetchList();
+      items[idx].done = !items[idx].done;
+      storeList(items);
+      displayList();
+    }
+
+    function removeItem(idx) {
+      const items = fetchList();
+      items.splice(idx, 1);
+      storeList(items);
+      displayList();
+    }
+
+    function wipeAll() {
+      if (confirm("Clear everything?")) {
+        localStorage.removeItem(keyName);
+        displayList();
+      }
+    }
+
+    function displayList() {
+      taskHolder.innerHTML = "";
+      const items = fetchList();
+
+      if (items.length === 0) {
+        firstBtn.style.display = "inline-block";
+        inputWrap.style.display = "none";
+        footerBar.style.display = "none";
+      } else {
+        firstBtn.style.display = "none";
+        inputWrap.style.display = "flex";
+        footerBar.style.display = "flex";
+      }
+
+      items.forEach((item, i) => {
+        const li = document.createElement("li");
+        li.textContent = item.label;
+        if (item.done) li.classList.add("done");
+        li.addEventListener("click", () => toggleItem(i));
+
+        const del = document.createElement("button");
+        del.textContent = "Delete";
+        del.classList.add("remove");
+        del.addEventListener("click", e => {
+          e.stopPropagation();
+          removeItem(i);
+        });
+
+        li.appendChild(del);
+        taskHolder.appendChild(li);
+      });
+
+      const pending = items.filter(it => !it.done).length;
+      remaining.textContent = pending === 1 ? "1 task left" : `${pending} tasks left`;
+    }
+  </script>
+</body>
+</html>
